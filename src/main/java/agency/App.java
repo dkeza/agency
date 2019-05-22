@@ -10,19 +10,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 
 public class App {
 
-	public static HashMap<String, String> users;
-	public static HashMap<String, String> appointments;
-	
+	public static ConcurrentHashMap<String, String> users;
+	public static ConcurrentHashMap<String, String> appointments;
+
 	static {
-		users = new HashMap<>();
-		appointments = new HashMap<>();
+		users = new ConcurrentHashMap<>();
+		appointments = new ConcurrentHashMap<>();
 	}
 
 	public static void main(String[] args) {
@@ -101,6 +101,9 @@ class UserController {
 		} else {
 			App.users.remove(id);
 			response = json;
+
+			// Also must delete child records in appointments
+
 		}
 		res.send(response);
 	}
@@ -211,6 +214,27 @@ class AppointmentController {
 			App.appointments.remove(id);
 			response = json;
 		}
+		res.send(response);
+	}
+
+	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.DELETE)
+	public void deleteForUser(Request req, Response res) {
+		String response = "[";
+		String userid = req.getParam("id");
+		Gson g = new Gson();
+
+		for (Entry<String, String> entry : App.appointments.entrySet()) {
+			String json = entry.getValue();
+			Appointment appointment = g.fromJson(json, Appointment.class);
+			if (appointment.userid.equals(userid)) {
+				App.appointments.remove(appointment.id);
+				response += json + ",";
+			}
+		}
+		if (response.length() > 1) {
+			response = Util.removeLastChar(response);
+		}
+		response += "]";
 		res.send(response);
 	}
 
