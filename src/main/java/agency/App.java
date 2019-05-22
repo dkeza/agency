@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -103,9 +104,10 @@ class UserController {
 			response = json;
 
 			// Also must delete child records in appointments
-			// In production here should be done HTTP Request to http://localhost:8080/appointments/user/:id
+			// In production here should be done HTTP Request to
+			// http://localhost:8080/appointments/user/:id
 			Appointment.deleteForUser(id);
-			
+
 		}
 		res.send(response);
 	}
@@ -223,7 +225,7 @@ class AppointmentController {
 	public void deleteForUser(Request req, Response res) {
 		String response = "";
 		String userid = req.getParam("id");
-		
+
 		response = Appointment.deleteForUser(userid);
 
 		res.send(response);
@@ -259,20 +261,21 @@ class AppointmentController {
 }
 
 class Appointment {
+
 	public String id;
 	public String title;
 	public String from;
 	public String to;
-	public String userid;
+	public String[] users;
 
-	public Appointment(String id, String title, String from, String to, String userid) {
+	public Appointment(String id, String title, String from, String to, String[] users) {
 		this.id = id;
 		this.title = title;
 		this.from = from;
 		this.to = to;
-		this.userid = userid;
+		this.users = users;
 	}
-	
+
 	public static String deleteForUser(String userid) {
 		String response = "[";
 		Gson g = new Gson();
@@ -280,7 +283,17 @@ class Appointment {
 		for (Entry<String, String> entry : App.appointments.entrySet()) {
 			String json = entry.getValue();
 			Appointment appointment = g.fromJson(json, Appointment.class);
-			if (appointment.userid.equals(userid)) {
+
+			// Find user in selected appointment
+			boolean found = false;
+			for (String element : appointment.users) {
+				if (element.equals(userid)) {
+					found = true;
+					break;
+				}
+			}
+
+			if (found) {
 				App.appointments.remove(appointment.id);
 				response += json + ",";
 			}
