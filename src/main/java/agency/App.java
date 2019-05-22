@@ -39,7 +39,7 @@ class UserController {
 		for (Entry<String, String> entry : App.users.entrySet()) {
 			response += entry.getValue() + ",";
 		}
-		if (response.length()>1) {
+		if (response.length() > 1) {
 			response = Util.removeLastChar(response);
 		}
 		response += "]";
@@ -51,7 +51,7 @@ class UserController {
 		String response = "";
 		String id = req.getParam("id");
 		String json = App.users.get(id);
-		if (json==null) {
+		if (json == null) {
 			response = Util.getError("User with id " + id + " doesnt exists!");
 		} else {
 			response = json;
@@ -59,41 +59,12 @@ class UserController {
 		res.send(response);
 	}
 
-	@DynExpress(context = "/users/:id", method = RequestMethod.PATCH)
+	@DynExpress(context = "/users", method = RequestMethod.PATCH)
 	public void update(Request req, Response res) {
-		String response = "";
-		String id = req.getParam("id");
-		String json = App.users.get(id);
-		if (json==null) {
-			response = Util.getError("User with id " + id + " doesnt exists!");
-		} else {
-			response = json;
-			//
-			// ************** HERE ADD UPDATE CODE
-			//
-		}
-		res.send(response);
-	}
-
-	@DynExpress(context = "/users/:id", method = RequestMethod.DELETE)
-	public void delete(Request req, Response res) {
-		String response = "";
-		String id = req.getParam("id");
-		String json = App.users.get(id);
-		if (json==null) {
-			response = Util.getError("User with id " + id + " doesnt exists!");
-		} else {
-			System.out.println(App.users.remove(id));
-			response = json;
-		}
-		res.send(response);
-	}
-	
-	@DynExpress(context = "/users", method = RequestMethod.POST)
-	public void create(Request req, Response res) {
 		String response = "";
 		Gson g = new Gson();
 		String json = Util.ConvertToString(req.getBody());
+
 		if (json == "") {
 			Error error = new Error("Internal error 1");
 			response = g.toJson(error);
@@ -104,7 +75,48 @@ class UserController {
 				response = g.toJson(error);
 			} else {
 				String storedJson = App.users.get(user.id);
-				System.out.println("storedJson: " + storedJson);
+				if (storedJson == null) {
+					Error error = new Error("User with id " + user.id + " doesnt exists!");
+					response = g.toJson(error);
+				} else {
+					App.users.put(user.id, g.toJson(user));
+					response = g.toJson(user);
+				}
+			}
+		}
+		res.send(response);
+	}
+
+	@DynExpress(context = "/users/:id", method = RequestMethod.DELETE)
+	public void delete(Request req, Response res) {
+		String response = "";
+		String id = req.getParam("id");
+		String json = App.users.get(id);
+		if (json == null) {
+			response = Util.getError("User with id " + id + " doesnt exists!");
+		} else {
+			System.out.println(App.users.remove(id));
+			response = json;
+		}
+		res.send(response);
+	}
+
+	@DynExpress(context = "/users", method = RequestMethod.POST)
+	public void create(Request req, Response res) {
+		String response = "";
+		Gson g = new Gson();
+		String json = Util.ConvertToString(req.getBody());
+
+		if (json == "") {
+			Error error = new Error("Internal error 1");
+			response = g.toJson(error);
+		} else {
+			User user = g.fromJson(json, User.class);
+			if (user.id == "") {
+				Error error = new Error("Internal error 2");
+				response = g.toJson(error);
+			} else {
+				String storedJson = App.users.get(user.id);
 				if (storedJson != null) {
 					Error error = new Error("User with id " + user.id + " exists!");
 					response = g.toJson(error);
@@ -159,17 +171,15 @@ class Util {
 		}
 		return out.toString();
 	}
-	
+
 	public static String removeLastChar(String str) {
-	    return str.substring(0, str.length() - 1);
+		return str.substring(0, str.length() - 1);
 	}
-	
+
 	public static String getError(String errorText) {
 		Error error = new Error(errorText);
 		Gson g = new Gson();
 		return g.toJson(error);
 	}
-	
+
 }
-
-
