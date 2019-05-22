@@ -18,14 +18,18 @@ import com.google.gson.Gson;
 public class App {
 
 	public static HashMap<String, String> users;
+	public static HashMap<String, String> appointments;
+	
 	static {
 		users = new HashMap<>();
+		appointments = new HashMap<>();
 	}
 
 	public static void main(String[] args) {
 		Integer port = 8080;
 		Express app = new Express();
 		app.bind(new UserController());
+		app.bind(new AppointmentController());
 		System.out.println("Listening on port " + port);
 		app.listen(port);
 	}
@@ -95,6 +99,7 @@ class UserController {
 		if (json == null) {
 			response = Util.getError("User with id " + id + " doesnt exists!");
 		} else {
+			App.users.remove(id);
 			response = json;
 		}
 		res.send(response);
@@ -136,6 +141,121 @@ class User {
 	public User(String id, String name) {
 		this.id = id;
 		this.name = name;
+	}
+}
+
+class AppointmentController {
+
+	@DynExpress(context = "/appointments", method = RequestMethod.GET)
+	public void readAll(Request req, Response res) {
+		String response = "[";
+		for (Entry<String, String> entry : App.appointments.entrySet()) {
+			response += entry.getValue() + ",";
+		}
+		if (response.length() > 1) {
+			response = Util.removeLastChar(response);
+		}
+		response += "]";
+		res.send(response);
+	}
+
+	@DynExpress(context = "/appointments/:id", method = RequestMethod.GET)
+	public void read(Request req, Response res) {
+		String response = "";
+		String id = req.getParam("id");
+		String json = App.appointments.get(id);
+		if (json == null) {
+			response = Util.getError("Appointment with id " + id + " doesnt exists!");
+		} else {
+			response = json;
+		}
+		res.send(response);
+	}
+
+	@DynExpress(context = "/appointments", method = RequestMethod.PATCH)
+	public void update(Request req, Response res) {
+		String response = "";
+		Gson g = new Gson();
+		String json = Util.ConvertToString(req.getBody());
+
+		if (json == "") {
+			Error error = new Error("Internal error 1");
+			response = g.toJson(error);
+		} else {
+			Appointment appointment = g.fromJson(json, Appointment.class);
+			if (appointment.id == "") {
+				Error error = new Error("Internal error 2");
+				response = g.toJson(error);
+			} else {
+				String storedJson = App.appointments.get(appointment.id);
+				if (storedJson == null) {
+					Error error = new Error("Appointment with id " + appointment.id + " doesnt exists!");
+					response = g.toJson(error);
+				} else {
+					App.appointments.put(appointment.id, g.toJson(appointment));
+					response = g.toJson(appointment);
+				}
+			}
+		}
+		res.send(response);
+	}
+
+	@DynExpress(context = "/appointments/:id", method = RequestMethod.DELETE)
+	public void delete(Request req, Response res) {
+		String response = "";
+		String id = req.getParam("id");
+		String json = App.appointments.get(id);
+		if (json == null) {
+			response = Util.getError("Appointment with id " + id + " doesnt exists!");
+		} else {
+			App.appointments.remove(id);
+			response = json;
+		}
+		res.send(response);
+	}
+
+	@DynExpress(context = "/appointments", method = RequestMethod.POST)
+	public void create(Request req, Response res) {
+		String response = "";
+		Gson g = new Gson();
+		String json = Util.ConvertToString(req.getBody());
+
+		if (json == "") {
+			Error error = new Error("Internal error 1");
+			response = g.toJson(error);
+		} else {
+			Appointment appointment = g.fromJson(json, Appointment.class);
+			if (appointment.id == "") {
+				Error error = new Error("Internal error 2");
+				response = g.toJson(error);
+			} else {
+				String storedJson = App.appointments.get(appointment.id);
+				if (storedJson != null) {
+					Error error = new Error("Appointment with id " + appointment.id + " exists!");
+					response = g.toJson(error);
+				} else {
+					App.appointments.put(appointment.id, g.toJson(appointment));
+					response = g.toJson(appointment);
+				}
+			}
+		}
+		res.send(response);
+	}
+}
+
+class Appointment {
+	public String id;
+	public String title;
+	public String from;
+	public String to;
+	public String userid;
+
+	public Appointment(String id, String title, String from, String to, String userid) {
+		this.id = id;
+		this.title = title;
+		this.from = from;
+		this.to = to;
+		this.userid = userid;
 	}
 }
 
