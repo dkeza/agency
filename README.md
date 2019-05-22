@@ -6,4 +6,4 @@ Run service with
 mvn clean compile exec:java
 ```
 
-Server is listening on port 8080.
+Server is listening on port 8080
