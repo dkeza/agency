@@ -95,7 +95,6 @@ class UserController {
 		if (json == null) {
 			response = Util.getError("User with id " + id + " doesnt exists!");
 		} else {
-			System.out.println(App.users.remove(id));
 			response = json;
 		}
 		res.send(response);
