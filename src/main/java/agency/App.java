@@ -103,7 +103,9 @@ class UserController {
 			response = json;
 
 			// Also must delete child records in appointments
-
+			// In production here should be done HTTP Request to http://localhost:8080/appointments/user/:id
+			Appointment.deleteForUser(id);
+			
 		}
 		res.send(response);
 	}
@@ -219,22 +221,11 @@ class AppointmentController {
 
 	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.DELETE)
 	public void deleteForUser(Request req, Response res) {
-		String response = "[";
+		String response = "";
 		String userid = req.getParam("id");
-		Gson g = new Gson();
+		
+		response = Appointment.deleteForUser(userid);
 
-		for (Entry<String, String> entry : App.appointments.entrySet()) {
-			String json = entry.getValue();
-			Appointment appointment = g.fromJson(json, Appointment.class);
-			if (appointment.userid.equals(userid)) {
-				App.appointments.remove(appointment.id);
-				response += json + ",";
-			}
-		}
-		if (response.length() > 1) {
-			response = Util.removeLastChar(response);
-		}
-		response += "]";
 		res.send(response);
 	}
 
@@ -281,6 +272,26 @@ class Appointment {
 		this.to = to;
 		this.userid = userid;
 	}
+	
+	public static String deleteForUser(String userid) {
+		String response = "[";
+		Gson g = new Gson();
+
+		for (Entry<String, String> entry : App.appointments.entrySet()) {
+			String json = entry.getValue();
+			Appointment appointment = g.fromJson(json, Appointment.class);
+			if (appointment.userid.equals(userid)) {
+				App.appointments.remove(appointment.id);
+				response += json + ",";
+			}
+		}
+		if (response.length() > 1) {
+			response = Util.removeLastChar(response);
+		}
+		response += "]";
+		return response;
+	}
+
 }
 
 class Error {
