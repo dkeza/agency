@@ -261,8 +261,13 @@ class AppointmentController {
 					Error error = new Error("Appointment with id " + appointment.id + " exists!");
 					response = g.toJson(error);
 				} else {
-					App.appointments.put(appointment.id, g.toJson(appointment));
-					response = g.toJson(appointment);
+					if (!appointment.Allowed()) {
+						Error error = new Error("Another appointment for same user(s) already exists!");
+						response = g.toJson(error);
+					} else {
+						App.appointments.put(appointment.id, g.toJson(appointment));
+						response = g.toJson(appointment);
+					}
 				}
 			}
 		}
@@ -286,6 +291,48 @@ class Appointment {
 		this.users = users;
 	}
 
+	public boolean Allowed() {
+		boolean allowed = true;
+		Gson g = new Gson();
+	    
+		for (Entry<String, String> entry : App.appointments.entrySet()) {
+			String json = entry.getValue();
+			Appointment appointment = g.fromJson(json, Appointment.class);
+
+			// Find user in selected appointment
+			boolean found = false;
+			
+			for (String userInThisAppointment : this.users) {
+				for (String userInOtherAppointment : appointment.users) {
+					if (userInOtherAppointment.equals(userInThisAppointment)) {
+						found = true;
+						break;
+					}
+				}
+				if (found) {
+					break;
+				}
+			}
+			
+			if (found) {
+				allowed = false;
+//				System.out.println(appointment.from);
+//				System.out.println(appointment.to);
+//				System.out.println(this.from);
+//				System.out.println(this.to);
+
+//				
+//				if (appointment.from <= this.to && appointment.to >= this.from) {
+//					// Conflict found
+//					allowed = false;
+//				}
+				
+				break;
+			}
+		}
+		
+		return allowed;
+	}
 	public static String deleteForUser(String userid) {
 		String response = "[";
 		Gson g = new Gson();
