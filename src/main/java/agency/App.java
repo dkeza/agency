@@ -6,16 +6,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.time.ZonedDateTime;
 import com.google.gson.Gson;
-
 import express.DynExpress;
 import express.Express;
 import express.http.RequestMethod;
 import express.http.request.Request;
 import express.http.response.Response;
-
-import java.time.ZonedDateTime;
 
 public class App {
 
@@ -182,7 +179,8 @@ class AppointmentController {
 					response = g.toJson(error);
 				} else {
 					if (!appointment.Allowed()) {
-						Error error = new Error("Another appointment for same user(s) already exists!");
+						Error error = new Error(
+								"Another appointment for same user(s) in same interval already exists!");
 						response = g.toJson(error);
 					} else {
 						App.appointments.put(appointment.id, g.toJson(appointment));
@@ -229,8 +227,14 @@ class AppointmentController {
 					Error error = new Error("Appointment with id " + appointment.id + " doesnt exists!");
 					response = g.toJson(error);
 				} else {
-					App.appointments.put(appointment.id, g.toJson(appointment));
-					response = g.toJson(appointment);
+					if (!appointment.Allowed()) {
+						Error error = new Error(
+								"Another appointment for same user(s) in same interval already exists!");
+						response = g.toJson(error);
+					} else {
+						App.appointments.put(appointment.id, g.toJson(appointment));
+						response = g.toJson(appointment);
+					}
 				}
 			}
 		}
@@ -313,6 +317,11 @@ class Appointment {
 		for (Entry<String, String> entry : App.appointments.entrySet()) {
 			String json = entry.getValue();
 			Appointment appointment = g.fromJson(json, Appointment.class);
+
+			if (appointment.id.equals(this.id)) {
+				// Don't check same appointment
+				continue;
+			}
 
 			// Find user in selected appointment
 			boolean found = false;
