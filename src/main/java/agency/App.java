@@ -17,6 +17,9 @@ public class App {
 	public static void main(String[] args) {
 		Integer port = 8080;
 		Express app = new Express();
+		app.get("/", (req, res) -> {
+			res.send("{\"error\":\"Wrong URL\"}");
+		});
 		app.bind(new UserController());
 		app.bind(new AppointmentController());
 		System.out.println("Listening on port " + port);
