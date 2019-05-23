@@ -30,9 +30,8 @@ public class AppointmentController {
 					Error error = new Error("Appointment with id " + appointment.id + " exists!");
 					response = g.toJson(error);
 				} else {
-					if (!appointment.Allowed()) {
-						Error error = new Error(
-								"Another appointment for same user(s) in same interval already exists!");
+					if (!appointment.Validate()) {
+						Error error = new Error("Invalid appointment!");
 						response = g.toJson(error);
 					} else {
 						App.appointments.put(appointment.id, g.toJson(appointment));
@@ -81,9 +80,8 @@ public class AppointmentController {
 					Error error = new Error("Appointment with id " + appointment.id + " doesnt exists!");
 					response = g.toJson(error);
 				} else {
-					if (!appointment.Allowed()) {
-						Error error = new Error(
-								"Another appointment for same user(s) in same interval already exists!");
+					if (!appointment.Validate()) {
+						Error error = new Error("Invalid appointment!");
 						response = g.toJson(error);
 					} else {
 						App.appointments.put(appointment.id, g.toJson(appointment));
@@ -169,10 +167,22 @@ class Appointment {
 		this.users = users;
 	}
 
-	public boolean Allowed() {
+	// Validate appointment before storing to database
+	public boolean Validate() {
 		boolean allowed = true;
 		Gson g = new Gson();
 
+		// Check id, from, to dates
+		if (this.id.length() == 0 || this.from.length() == 0 || this.to.length() == 0) {
+			allowed = false;
+			return allowed;
+		}
+		if (Util.GreaterOrEqual(this.from, this.to)) {
+			allowed = false;
+			return allowed;
+		}
+
+		// Check for conflicts
 		for (Entry<String, String> entry : App.appointments.entrySet()) {
 			String json = entry.getValue();
 			Appointment appointment = g.fromJson(json, Appointment.class);

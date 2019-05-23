@@ -30,8 +30,13 @@ public class UserController {
 					Error error = new Error("User with id " + user.id + " exists!");
 					response = g.toJson(error);
 				} else {
-					App.users.put(user.id, g.toJson(user));
-					response = g.toJson(user);
+					if (!user.Validate()) {
+						Error error = new Error("Invalid user!");
+						response = g.toJson(error);
+					} else {
+						App.users.put(user.id, g.toJson(user));
+						response = g.toJson(user);
+					}
 				}
 			}
 		}
@@ -75,8 +80,13 @@ public class UserController {
 					Error error = new Error("User with id " + user.id + " doesnt exists!");
 					response = g.toJson(error);
 				} else {
-					App.users.put(user.id, g.toJson(user));
-					response = g.toJson(user);
+					if (!user.Validate()) {
+						Error error = new Error("Invalid user!");
+						response = g.toJson(error);
+					} else {
+						App.users.put(user.id, g.toJson(user));
+						response = g.toJson(user);
+					}
 				}
 			}
 		}
@@ -130,5 +140,17 @@ class User {
 	public User(String id, String name) {
 		this.id = id;
 		this.name = name;
+	}
+
+	public boolean Validate() {
+		boolean allowed = true;
+
+		// Check id and name
+		if (this.id.length() == 0 || this.name.length() == 0) {
+			allowed = false;
+			return allowed;
+		}
+
+		return allowed;
 	}
 }
