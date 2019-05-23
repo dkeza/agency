@@ -35,6 +35,7 @@ public class UserController {
 				}
 			}
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -49,6 +50,7 @@ public class UserController {
 		} else {
 			response = json;
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -78,6 +80,7 @@ public class UserController {
 				}
 			}
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -99,6 +102,7 @@ public class UserController {
 			Appointment.deleteForUser(id);
 
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -113,6 +117,7 @@ public class UserController {
 			response = Util.removeLastChar(response);
 		}
 		response += "]";
+		res.setContentType("application/json");
 		res.send(response);
 	}
 

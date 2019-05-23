@@ -41,6 +41,7 @@ public class AppointmentController {
 				}
 			}
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -55,6 +56,7 @@ public class AppointmentController {
 		} else {
 			response = json;
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -90,6 +92,7 @@ public class AppointmentController {
 				}
 			}
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -105,6 +108,7 @@ public class AppointmentController {
 			App.appointments.remove(id);
 			response = json;
 		}
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -119,6 +123,7 @@ public class AppointmentController {
 			response = Util.removeLastChar(response);
 		}
 		response += "]";
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -130,6 +135,7 @@ public class AppointmentController {
 
 		response = Appointment.readForUser(userid);
 
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
@@ -141,6 +147,7 @@ public class AppointmentController {
 
 		response = Appointment.deleteForUser(userid);
 
+		res.setContentType("application/json");
 		res.send(response);
 	}
 
