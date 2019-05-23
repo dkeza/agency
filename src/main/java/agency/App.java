@@ -1,20 +1,24 @@
 package agency;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.google.gson.Gson;
+
 import express.DynExpress;
 import express.Express;
 import express.http.RequestMethod;
 import express.http.request.Request;
 import express.http.response.Response;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.google.gson.Gson;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class App {
 
@@ -175,7 +179,7 @@ class AppointmentController {
 
 		res.send(response);
 	}
-	
+
 	@DynExpress(context = "/appointments/:id", method = RequestMethod.GET)
 	public void read(Request req, Response res) {
 		String response = "";
@@ -294,14 +298,13 @@ class Appointment {
 	public boolean Allowed() {
 		boolean allowed = true;
 		Gson g = new Gson();
-	    
+
 		for (Entry<String, String> entry : App.appointments.entrySet()) {
 			String json = entry.getValue();
 			Appointment appointment = g.fromJson(json, Appointment.class);
 
 			// Find user in selected appointment
 			boolean found = false;
-			
 			for (String userInThisAppointment : this.users) {
 				for (String userInOtherAppointment : appointment.users) {
 					if (userInOtherAppointment.equals(userInThisAppointment)) {
@@ -313,26 +316,19 @@ class Appointment {
 					break;
 				}
 			}
-			
-			if (found) {
-				allowed = false;
-//				System.out.println(appointment.from);
-//				System.out.println(appointment.to);
-//				System.out.println(this.from);
-//				System.out.println(this.to);
 
-//				
-//				if (appointment.from <= this.to && appointment.to >= this.from) {
-//					// Conflict found
-//					allowed = false;
-//				}
-				
-				break;
+			if (found) {
+				// User is found, check is appointment conflicting
+				if (Util.LessOrEqual(appointment.from, this.to) && Util.GreaterOrEqual(appointment.to, this.from)) {
+					allowed = false;
+					break;
+				}
 			}
 		}
-		
+
 		return allowed;
 	}
+
 	public static String deleteForUser(String userid) {
 		String response = "[";
 		Gson g = new Gson();
@@ -361,7 +357,7 @@ class Appointment {
 		response += "]";
 		return response;
 	}
-	
+
 	public static String readForUser(String userid) {
 		String response = "[";
 		Gson g = new Gson();
@@ -432,6 +428,37 @@ class Util {
 		Error error = new Error(errorText);
 		Gson g = new Gson();
 		return g.toJson(error);
+	}
+
+	public static boolean LessOrEqual(String from, String to) {
+		boolean lessOrEqual = false;
+		ZonedDateTime fromDateTime = Util.ConvertDateTime(from);
+		ZonedDateTime toDateTime = Util.ConvertDateTime(to);
+		int compareResult = fromDateTime.compareTo(toDateTime);
+
+		if (compareResult == -1 || compareResult == 0) {
+			lessOrEqual = true;
+		}
+
+		return lessOrEqual;
+	}
+
+	public static boolean GreaterOrEqual(String from, String to) {
+		boolean greaterOrEqual = false;
+		ZonedDateTime fromDateTime = Util.ConvertDateTime(from);
+		ZonedDateTime toDateTime = Util.ConvertDateTime(to);
+		int compareResult = fromDateTime.compareTo(toDateTime);
+
+		if (compareResult == 1 || compareResult == 0) {
+			greaterOrEqual = true;
+		}
+
+		return greaterOrEqual;
+	}
+
+	public static ZonedDateTime ConvertDateTime(String jsonDateTime) {
+		ZonedDateTime javaDateTime = ZonedDateTime.parse(jsonDateTime);
+		return javaDateTime;
 	}
 
 }
