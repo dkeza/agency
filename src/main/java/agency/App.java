@@ -39,19 +39,36 @@ public class App {
 
 class UserController {
 
-	@DynExpress(context = "/users", method = RequestMethod.GET)
-	public void readAll(Request req, Response res) {
-		String response = "[";
-		for (Entry<String, String> entry : App.users.entrySet()) {
-			response += entry.getValue() + ",";
+	// Create
+	@DynExpress(context = "/users", method = RequestMethod.POST)
+	public void create(Request req, Response res) {
+		String response = "";
+		Gson g = new Gson();
+		String json = Util.ConvertToString(req.getBody());
+
+		if (json == "") {
+			Error error = new Error("Internal error 1");
+			response = g.toJson(error);
+		} else {
+			User user = g.fromJson(json, User.class);
+			if (user.id == "") {
+				Error error = new Error("Internal error 2");
+				response = g.toJson(error);
+			} else {
+				String storedJson = App.users.get(user.id);
+				if (storedJson != null) {
+					Error error = new Error("User with id " + user.id + " exists!");
+					response = g.toJson(error);
+				} else {
+					App.users.put(user.id, g.toJson(user));
+					response = g.toJson(user);
+				}
+			}
 		}
-		if (response.length() > 1) {
-			response = Util.removeLastChar(response);
-		}
-		response += "]";
 		res.send(response);
 	}
 
+	// Read
 	@DynExpress(context = "/users/:id", method = RequestMethod.GET)
 	public void read(Request req, Response res) {
 		String response = "";
@@ -65,6 +82,7 @@ class UserController {
 		res.send(response);
 	}
 
+	// Update
 	@DynExpress(context = "/users", method = RequestMethod.PATCH)
 	public void update(Request req, Response res) {
 		String response = "";
@@ -93,6 +111,7 @@ class UserController {
 		res.send(response);
 	}
 
+	// Delete
 	@DynExpress(context = "/users/:id", method = RequestMethod.DELETE)
 	public void delete(Request req, Response res) {
 		String response = "";
@@ -113,33 +132,20 @@ class UserController {
 		res.send(response);
 	}
 
-	@DynExpress(context = "/users", method = RequestMethod.POST)
-	public void create(Request req, Response res) {
-		String response = "";
-		Gson g = new Gson();
-		String json = Util.ConvertToString(req.getBody());
-
-		if (json == "") {
-			Error error = new Error("Internal error 1");
-			response = g.toJson(error);
-		} else {
-			User user = g.fromJson(json, User.class);
-			if (user.id == "") {
-				Error error = new Error("Internal error 2");
-				response = g.toJson(error);
-			} else {
-				String storedJson = App.users.get(user.id);
-				if (storedJson != null) {
-					Error error = new Error("User with id " + user.id + " exists!");
-					response = g.toJson(error);
-				} else {
-					App.users.put(user.id, g.toJson(user));
-					response = g.toJson(user);
-				}
-			}
+	// Read all
+	@DynExpress(context = "/users", method = RequestMethod.GET)
+	public void readAll(Request req, Response res) {
+		String response = "[";
+		for (Entry<String, String> entry : App.users.entrySet()) {
+			response += entry.getValue() + ",";
 		}
+		if (response.length() > 1) {
+			response = Util.removeLastChar(response);
+		}
+		response += "]";
 		res.send(response);
 	}
+
 }
 
 class User {
@@ -154,94 +160,7 @@ class User {
 
 class AppointmentController {
 
-	@DynExpress(context = "/appointments", method = RequestMethod.GET)
-	public void readAll(Request req, Response res) {
-		String response = "[";
-		for (Entry<String, String> entry : App.appointments.entrySet()) {
-			response += entry.getValue() + ",";
-		}
-		if (response.length() > 1) {
-			response = Util.removeLastChar(response);
-		}
-		response += "]";
-		res.send(response);
-	}
-
-	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.GET)
-	public void readForUser(Request req, Response res) {
-		String response = "";
-		String userid = req.getParam("id");
-
-		response = Appointment.readForUser(userid);
-
-		res.send(response);
-	}
-
-	@DynExpress(context = "/appointments/:id", method = RequestMethod.GET)
-	public void read(Request req, Response res) {
-		String response = "";
-		String id = req.getParam("id");
-		String json = App.appointments.get(id);
-		if (json == null) {
-			response = Util.getError("Appointment with id " + id + " doesnt exists!");
-		} else {
-			response = json;
-		}
-		res.send(response);
-	}
-
-	@DynExpress(context = "/appointments", method = RequestMethod.PATCH)
-	public void update(Request req, Response res) {
-		String response = "";
-		Gson g = new Gson();
-		String json = Util.ConvertToString(req.getBody());
-
-		if (json == "") {
-			Error error = new Error("Internal error 1");
-			response = g.toJson(error);
-		} else {
-			Appointment appointment = g.fromJson(json, Appointment.class);
-			if (appointment.id == "") {
-				Error error = new Error("Internal error 2");
-				response = g.toJson(error);
-			} else {
-				String storedJson = App.appointments.get(appointment.id);
-				if (storedJson == null) {
-					Error error = new Error("Appointment with id " + appointment.id + " doesnt exists!");
-					response = g.toJson(error);
-				} else {
-					App.appointments.put(appointment.id, g.toJson(appointment));
-					response = g.toJson(appointment);
-				}
-			}
-		}
-		res.send(response);
-	}
-
-	@DynExpress(context = "/appointments/:id", method = RequestMethod.DELETE)
-	public void delete(Request req, Response res) {
-		String response = "";
-		String id = req.getParam("id");
-		String json = App.appointments.get(id);
-		if (json == null) {
-			response = Util.getError("Appointment with id " + id + " doesnt exists!");
-		} else {
-			App.appointments.remove(id);
-			response = json;
-		}
-		res.send(response);
-	}
-
-	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.DELETE)
-	public void deleteForUser(Request req, Response res) {
-		String response = "";
-		String userid = req.getParam("id");
-
-		response = Appointment.deleteForUser(userid);
-
-		res.send(response);
-	}
-
+	// Create
 	@DynExpress(context = "/appointments", method = RequestMethod.POST)
 	public void create(Request req, Response res) {
 		String response = "";
@@ -274,6 +193,101 @@ class AppointmentController {
 		}
 		res.send(response);
 	}
+
+	// Read
+	@DynExpress(context = "/appointments/:id", method = RequestMethod.GET)
+	public void read(Request req, Response res) {
+		String response = "";
+		String id = req.getParam("id");
+		String json = App.appointments.get(id);
+		if (json == null) {
+			response = Util.getError("Appointment with id " + id + " doesnt exists!");
+		} else {
+			response = json;
+		}
+		res.send(response);
+	}
+
+	// Update
+	@DynExpress(context = "/appointments", method = RequestMethod.PATCH)
+	public void update(Request req, Response res) {
+		String response = "";
+		Gson g = new Gson();
+		String json = Util.ConvertToString(req.getBody());
+
+		if (json == "") {
+			Error error = new Error("Internal error 1");
+			response = g.toJson(error);
+		} else {
+			Appointment appointment = g.fromJson(json, Appointment.class);
+			if (appointment.id == "") {
+				Error error = new Error("Internal error 2");
+				response = g.toJson(error);
+			} else {
+				String storedJson = App.appointments.get(appointment.id);
+				if (storedJson == null) {
+					Error error = new Error("Appointment with id " + appointment.id + " doesnt exists!");
+					response = g.toJson(error);
+				} else {
+					App.appointments.put(appointment.id, g.toJson(appointment));
+					response = g.toJson(appointment);
+				}
+			}
+		}
+		res.send(response);
+	}
+
+	// Delete
+	@DynExpress(context = "/appointments/:id", method = RequestMethod.DELETE)
+	public void delete(Request req, Response res) {
+		String response = "";
+		String id = req.getParam("id");
+		String json = App.appointments.get(id);
+		if (json == null) {
+			response = Util.getError("Appointment with id " + id + " doesnt exists!");
+		} else {
+			App.appointments.remove(id);
+			response = json;
+		}
+		res.send(response);
+	}
+
+	// Read all
+	@DynExpress(context = "/appointments", method = RequestMethod.GET)
+	public void readAll(Request req, Response res) {
+		String response = "[";
+		for (Entry<String, String> entry : App.appointments.entrySet()) {
+			response += entry.getValue() + ",";
+		}
+		if (response.length() > 1) {
+			response = Util.removeLastChar(response);
+		}
+		response += "]";
+		res.send(response);
+	}
+
+	// Read all for user
+	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.GET)
+	public void readForUser(Request req, Response res) {
+		String response = "";
+		String userid = req.getParam("id");
+
+		response = Appointment.readForUser(userid);
+
+		res.send(response);
+	}
+
+	// Delete all for user
+	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.DELETE)
+	public void deleteForUser(Request req, Response res) {
+		String response = "";
+		String userid = req.getParam("id");
+
+		response = Appointment.deleteForUser(userid);
+
+		res.send(response);
+	}
+
 }
 
 class Appointment {
