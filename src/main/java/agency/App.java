@@ -166,6 +166,16 @@ class AppointmentController {
 		res.send(response);
 	}
 
+	@DynExpress(context = "/appointments/user/:id", method = RequestMethod.GET)
+	public void readForUser(Request req, Response res) {
+		String response = "";
+		String userid = req.getParam("id");
+
+		response = Appointment.readForUser(userid);
+
+		res.send(response);
+	}
+	
 	@DynExpress(context = "/appointments/:id", method = RequestMethod.GET)
 	public void read(Request req, Response res) {
 		String response = "";
@@ -295,6 +305,34 @@ class Appointment {
 
 			if (found) {
 				App.appointments.remove(appointment.id);
+				response += json + ",";
+			}
+		}
+		if (response.length() > 1) {
+			response = Util.removeLastChar(response);
+		}
+		response += "]";
+		return response;
+	}
+	
+	public static String readForUser(String userid) {
+		String response = "[";
+		Gson g = new Gson();
+
+		for (Entry<String, String> entry : App.appointments.entrySet()) {
+			String json = entry.getValue();
+			Appointment appointment = g.fromJson(json, Appointment.class);
+
+			// Find user in selected appointment
+			boolean found = false;
+			for (String element : appointment.users) {
+				if (element.equals(userid)) {
+					found = true;
+					break;
+				}
+			}
+
+			if (found) {
 				response += json + ",";
 			}
 		}
