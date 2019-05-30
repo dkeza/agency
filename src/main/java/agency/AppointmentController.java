@@ -16,12 +16,12 @@ public class AppointmentController {
 		Gson g = new Gson();
 		String json = Util.ConvertToString(req.getBody());
 
-		if (json == "") {
+		if (json.equals("")) {
 			Error error = new Error("Internal error 1");
 			response = g.toJson(error);
 		} else {
 			Appointment appointment = g.fromJson(json, Appointment.class);
-			if (appointment.id == "") {
+			if (appointment.id.equals("")) {
 				Error error = new Error("Internal error 2");
 				response = g.toJson(error);
 			} else {
@@ -66,12 +66,12 @@ public class AppointmentController {
 		Gson g = new Gson();
 		String json = Util.ConvertToString(req.getBody());
 
-		if (json == "") {
+		if (json.equals("")) {
 			Error error = new Error("Internal error 1");
 			response = g.toJson(error);
 		} else {
 			Appointment appointment = g.fromJson(json, Appointment.class);
-			if (appointment.id == "") {
+			if (appointment.id.equals("")) {
 				Error error = new Error("Internal error 2");
 				response = g.toJson(error);
 			} else {

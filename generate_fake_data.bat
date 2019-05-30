@@ -43,3 +43,11 @@ curl -X DELETE localhost:8080/appointments/1
 echo Delete appointments for user
 curl -X DELETE localhost:8080/appointments/user/2
 
+echo Update user * empty json * error 1
+curl -X PATCH localhost:8080/users -H "Content-Type: application/json"
+
+echo Update user * empty id * error 2
+curl -X PATCH localhost:8080/users -H "Content-Type: application/json" -d "{\"id\":\"\",\"name\":\"Spiderman\"}"
+
+
+

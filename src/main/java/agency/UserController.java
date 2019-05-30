@@ -16,12 +16,12 @@ public class UserController {
 		Gson g = new Gson();
 		String json = Util.ConvertToString(req.getBody());
 
-		if (json == "") {
+		if (json.equals("")) {
 			Error error = new Error("Internal error 1");
 			response = g.toJson(error);
 		} else {
 			User user = g.fromJson(json, User.class);
-			if (user.id == "") {
+			if (user.id.equals("")) {
 				Error error = new Error("Internal error 2");
 				response = g.toJson(error);
 			} else {
@@ -66,12 +66,12 @@ public class UserController {
 		Gson g = new Gson();
 		String json = Util.ConvertToString(req.getBody());
 
-		if (json == "") {
+		if (json.equals("")) {
 			Error error = new Error("Internal error 1");
 			response = g.toJson(error);
 		} else {
 			User user = g.fromJson(json, User.class);
-			if (user.id == "") {
+			if (user.id.equals("")) {
 				Error error = new Error("Internal error 2");
 				response = g.toJson(error);
 			} else {
